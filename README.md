@@ -1,6 +1,6 @@
 # 🚿 Aerospike Nozzle Design
 Compressible Inviscid (and Viscous) High Speed Nozzle Flows 
-This program was developed under the course Aerodynamics III from Instituto Superior Técnico.
+This projet was developed under the course Aerodynamics III from Instituto Superior Técnico.
 
 ## 🔧 Features
 
@@ -11,8 +11,7 @@ This program was developed under the course Aerodynamics III from Instituto Supe
 ## 📂 Project Structure
 
 ```
-Ramjet_Program/
-│
+Aerospike_Nozzle_Design/
 ├── angelino_method.py             # Core calculations
 ├── notes.md               # Initial thoughts and considerations
 └── README.md             # You're here 🚀
