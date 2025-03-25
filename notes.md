@@ -71,3 +71,11 @@ Literature:
         Me = 4.16
         N_lines = 100
 
+    Inviscid model:
+        PR:
+            20 - 0m
+            188 - 15545m
+            20480 - 47750m
+                static pressure,mach,temperature,stag pressure, velocity
+    Turbulent model, Rans:
+            20480 - 47750 - Thrust vectoring, wall y+, static pressure, mach
