@@ -27,23 +27,22 @@ def main():
     # User inputs 
     print("Enter inputs for aerospike countour design:")
     try:
-        gamma = float(input("Flow adiabatic constant: "))
-        Me = float(input("Aerospike Exit Mach number: "))
-        n = int(input("Number of characteristic lines: "))
+        gamma = safe_input("Flow adiabatic constant: ", float, 1.4)
+        Me = safe_input("Exit Mach number: ", float, 3.0)
+        n = safe_input("Number of characteristic lines: ", int, 20) 
     except ValueError:
         print("Invalid input. Please enter numeric values.")
         return
     lip_coords = [0,3] #Coordinates for the lip of the aerospike
     interval = (Me-1)/(n-1) #Interval between each characteristic line
-    M = 1
+    M_values = np.linspace(1, Me, n)
     # Lists to store data
     flow_data = np.zeros(shape=(n, 3)) #[M, L/D, theta]
     pm_angle_exit = pm_angle(gamma, Me) #This function was created for a previous project
-    for i in range(n):
-        flow_data[i,0] = M
-        flow_data[i,1] = M*epsilon(M,gamma)
-        flow_data[i,2] = pm_angle_exit + mach_angle(M) - pm_angle(gamma, M)
-        M += interval
+    for i, M in enumerate(M_values):
+        flow_data[i, 0] = M
+        flow_data[i, 1] = M * epsilon(M, gamma)
+        flow_data[i, 2] = pm_angle_exit + mach_angle(M) - pm_angle(gamma, M)
     PR=(1+((gamma-1)/2)*Me**2)**(gamma/(gamma-1))
     # Draw figure
     points, lip_coords = set_points(flow_data, lip_coords)
@@ -55,9 +54,9 @@ def main():
     print("Throat Angle: ",pm_angle_exit*180/math.pi)
     print("Length(mm): ", points_dimensionalized[len(flow_data)-1,0]*1000)
     print("Height(mm): ",points_dimensionalized[0,1]*1000)
-    #print("Exporting data...")
-    #export(points_dimensionalized, lip_coords_dimensionalized, "aerospike_contour", PR, pm_angle_exit)
-    #print("Data exported successfully.")
+    print("Exporting data...")
+    export(points_dimensionalized, lip_coords_dimensionalized, "aerospike_contour", PR, pm_angle_exit)
+    print("Data exported successfully.")
      
     
 def pm_angle(gamma, Me):
@@ -137,7 +136,7 @@ def export(points , P, file_name, PR, pm_angle_exit):
 
     # Creating the DataFrame
     save_points = pd.DataFrame(points , columns=["X", "Y"])
-    save_lip = pd.DataFrame(P)
+    save_lip = pd.DataFrame([P], columns=["X", "Y"])
     save_pr = pd.DataFrame([PR])
     save_pm_exit = pd.DataFrame([math.degrees(pm_angle_exit)])
 
@@ -150,10 +149,16 @@ def export(points , P, file_name, PR, pm_angle_exit):
 
     # Exporting to a TXT file
     with open(f"{file_name}.txt", 'w') as f:
-        f.write("polyline=true\n")
-        f.write("3d=false\n")
-        for line in points:
-            f.write(f"1 {line[0]} {line[1]}\n")
+       f.write("# Format: [index] X Y\n")
+       for i, line in enumerate(points):
+            f.write(f"{i+1} {line[0]:.6f} {line[1]:.6f}\n")
+
+def safe_input(prompt, cast_type, default):
+    try:
+        return cast_type(input(prompt))
+    except Exception:
+        print(f"Invalid input. Using default: {default}")
+        return default
 
 if __name__ == "__main__":
     main()

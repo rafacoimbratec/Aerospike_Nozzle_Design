@@ -65,3 +65,9 @@ Literature:
     ing points." - Angelino Method justification
 
     https://github.com/mvernacc/aerospike-nozzle-design-gui/blob/master/Spike%20Contour%20Algorithm.pdf
+
+    For validation purposes:
+        Gamma = 1.4
+        Me = 4.16
+        N_lines = 100
+
