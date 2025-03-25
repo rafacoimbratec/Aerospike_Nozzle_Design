@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import math
+import os
 
 """
 User inputs: 
@@ -51,25 +52,30 @@ def main():
     draw_figure(points, lip_coords)
     print("Aerospike contour design completed.")
     print("Exit pressure ratio: ", PR)
-    print("Throat Angle: ",pm_angle_exit)
-    print("Length: ",points[len(flow_data)-1,0])
-    print("Height: ",points[0,1])
-    print("Aerospike contour data exported to aerospike_data.xlsx")
-    print("Aerospike contour image exported to aerospike_contour.png")
-    
-    
+    print("Throat Angle: ",pm_angle_exit*180/math.pi)
+    print("Length(mm): ", points_dimensionalized[len(flow_data)-1,0]*1000)
+    print("Height(mm): ",points_dimensionalized[0,1]*1000)
+    #print("Exporting data...")
+    #export(points_dimensionalized, lip_coords_dimensionalized, "aerospike_contour", PR, pm_angle_exit)
+    #print("Data exported successfully.")
+     
     
 def pm_angle(gamma, Me):
     #Prandtl-Meyer function
     #This function was created for a previous project
     #It calculates the Prandtl-Meyer angle for a given Mach number
     A=math.sqrt((gamma+1)/(gamma-1))
-    B=math.atan(math.sqrt(((gamma-1)/(gamma+1))*(Me**2-1)))-math.atan(math.sqrt(Me**2-1))
-    return A*B
+    B=math.atan(math.sqrt(((gamma-1)/(gamma+1))*(Me**2-1)))
+    C=math.atan(math.sqrt(Me**2-1))
+    return A*B-C
 
 def epsilon(M,gamma):
     #It calculates the expansion ratio for a given Mach number
-    return (1/M)*((1+((gamma-1)/2)*M**2)**((gamma+1)/(2*(gamma-1))))
+    A= 1/(M**2)
+    B = 2*(1+0.5*(gamma-1)*M**2)/(gamma+1)
+    C=(gamma+1)/(gamma-1)
+    epsilon = math.sqrt(A*(B**C))
+    return epsilon
 
 def mach_angle(M):
     #It calculates the Mach angle for a given Mach number
@@ -102,17 +108,52 @@ def draw_figure(flow_data, P):
     P_2 = [P[0]-0.3,P[1]+0.02]
     plt.plot([P[0],P_2[0]],[P[1],P_2[1]],color='blue')
     plt.plot([P_1[0],P_2[0]],[P_1[1],P_2[1]],color='blue')
+    # Calculate angle between the lip lines
+    vec_A = [P_2[0] - P[0], P_2[1] - P[1]]
+    vec_B = [P_2[0] - P_1[0], P_2[1] - P_1[1]]
+
+    dot_product = vec_A[0]*vec_B[0] + vec_A[1]*vec_B[1]
+    mag_A = math.sqrt(vec_A[0]**2 + vec_A[1]**2)
+    mag_B = math.sqrt(vec_B[0]**2 + vec_B[1]**2)
+
+    cos_theta = dot_product / (mag_A * mag_B)
+    angle_rad = math.acos(cos_theta)
+    angle_deg = math.degrees(angle_rad)
+    print("Angle between lip lines:", angle_deg)
     #plot the countour
     plt.plot(flow_data[:,0], flow_data[:,1], color='black')
     #plot the characteristic lines
     for i in range(len(flow_data)):
-        plt.plot([P[0],flow_data[i,0]],[P[1],flow_data[i,1]],color='red')
+        plt.plot([P[0],flow_data[i,0]],[P[1],flow_data[i,1]],color='green')
     plt.show()
-    # Export data to Excel
-    #df = pd.DataFrame(flow_data, columns=["M", "L/D", "Theta"])
-    #df.to_excel("aerospike_data.xlsx", index=False)
-    # Export figure
-    #fig.savefig("aerospike_contour.png")
     
+    
+def export(points , P, file_name, PR, pm_angle_exit):
+    # Remove existing files if they exist
+    if os.path.exists(f"{file_name}.xlsx"):
+        os.remove(f"{file_name}.xlsx")
+    if os.path.exists(f"{file_name}.txt"):
+        os.remove(f"{file_name}.txt")
+
+    # Creating the DataFrame
+    save_points = pd.DataFrame(points , columns=["X", "Y"])
+    save_lip = pd.DataFrame(P)
+    save_pr = pd.DataFrame([PR])
+    save_pm_exit = pd.DataFrame([math.degrees(pm_angle_exit)])
+
+    # Exporting to an Excel file
+    with pd.ExcelWriter(f"{file_name}.xlsx") as writer:
+        save_points.to_excel(writer , sheet_name="Contour")
+        save_lip.to_excel(writer , sheet_name="Lip")
+        save_pr.to_excel(writer , sheet_name="Pressure Ratio")
+        save_pm_exit.to_excel(writer , sheet_name="Angle of the Throat")
+
+    # Exporting to a TXT file
+    with open(f"{file_name}.txt", 'w') as f:
+        f.write("polyline=true\n")
+        f.write("3d=false\n")
+        for line in points:
+            f.write(f"1 {line[0]} {line[1]}\n")
+
 if __name__ == "__main__":
     main()
