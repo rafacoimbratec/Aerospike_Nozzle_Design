@@ -1,7 +1,7 @@
 """
-Author: Rafael Coimbra Azeiteiro, Insituto Superior Técnico, Universidade de Lisboa, 2025
+Author: Rafael Coimbra Azeiteiro,Eduardo Helena, Elena Cipriano, João Almeida, Insituto Superior Técnico, Universidade de Lisboa, 2025
 This code is based on work by João Pedro Cristóvão Silva - "Angelino’s Method and CFD Validation" - João Pedro Cristóvão Silva
-However, all possible changes and features are going to be implemented by me, and the code is going to be adapted to the project needs.
+However, all possible changes and features are going to be implemented, and the code is going to be adapted to the project needs.
 More in depth about the project is referenced in the README.md file.
 """
 import numpy as np
